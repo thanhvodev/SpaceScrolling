@@ -1,5 +1,6 @@
 import math
 import random
+from re import L
 
 import pygame
 from pygame import mixer
@@ -11,8 +12,8 @@ pygame.init()
 screen = pygame.display.set_mode((800, 600))
 
 # Background
-background = pygame.image.load('background.png')
-background2 = pygame.image.load('background2.png')
+background = pygame.image.load('background.jpg')
+background2 = pygame.image.load('background2.jpg')
 
 # Sound
 mixer.music.load("background.wav")
@@ -37,6 +38,15 @@ enemyX_change = []
 enemyY_change = []
 num_of_enemies = 6
 
+# Coin
+coinImg = []
+coin_value = 0
+num_of_coin = 30
+coin_x = []
+coin_y = []
+coin_x_change = []
+coin_y_change = []
+
 # scrolling
 bg_y1 = 0
 bg_y2 = -screen.get_height()
@@ -50,6 +60,11 @@ for i in range(num_of_enemies):
     enemyY.append(random.randint(50, 150))
     enemyX_change.append(4)
     enemyY_change.append(40)
+
+for i in range(num_of_coin):
+    coinImg.append(pygame.image.load('dollar.png'))
+    coin_x.append(random.randint(0, screen.get_width()))
+    coin_y.append(random.randint(-20 * screen.get_height(), 0))
 
 # Bullet
 
@@ -80,6 +95,12 @@ def show_score(x, y):
     screen.blit(score, (x, y))
 
 
+def show_coin(x, y):
+    coin = font.render("Score : " + str(coin_value), True, (255, 255, 255))
+    screen.blit(coin, (x, y))
+
+
+
 def game_over_text():
     over_text = over_font.render("GAME OVER", True, (255, 255, 255))
     screen.blit(over_text, (200, 250))
@@ -92,6 +113,8 @@ def player(x, y):
 def enemy(x, y, i):
     screen.blit(enemyImg[i], (x, y))
 
+def coin(x, y, i):
+    screen.blit(coinImg[i], (x, y))
 
 def fire_bullet(x, y):
     global bullet_state
@@ -101,7 +124,7 @@ def fire_bullet(x, y):
 
 def isCollision(enemyX, enemyY, bulletX, bulletY):
     distance = math.sqrt(math.pow(enemyX - bulletX, 2) + (math.pow(enemyY - bulletY, 2)))
-    if distance < 27:
+    if distance < 30:
         return True
     else:
         return False
@@ -158,6 +181,13 @@ while running:
         playerX = 0
     elif playerX >= 736:
         playerX = 736
+
+    # Coin created 
+
+    for i in range(num_of_coin):
+        coin_y_change = 6
+        coin_y[i] += coin_y_change
+        coin(coin_x[i], coin_y[i], i)
 
     # Enemy Movement
     for i in range(num_of_enemies):
