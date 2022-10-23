@@ -133,6 +133,9 @@ def play_again_text():
 def player(x, y):
     screen.blit(playerImg, (x, y))
 
+def tick(x, y):
+    screen.fill((204, 152, 102, 255))
+    screen.blit(check, (x, y))
 
 def enemy(x, y, i):
     screen.blit(enemyImg[i], (x, y))
@@ -335,8 +338,8 @@ def about():
 def option():
     global hardness
     global num_of_enemies
-    pygame.display.set_caption("Option")    
-    screen.fill((204, 152, 102, 255))
+    pygame.display.set_caption("Option")  
+    screen.fill((204, 152, 102, 255))  
     easy_x = hard_x = back_x = 200
     easy_y = 170
     hard_x = 200
@@ -344,9 +347,11 @@ def option():
     back_y = 500
     while True:
         if hardness == 'easy':
-            screen.blit(check, (140, 160))
+            tick_y = 160
         else:
-            screen.blit(check, (140, 250))
+            tick_y = 250
+        tick(140, tick_y)
+        
         easy_text = over_font.render("Easy: 5 enemy", True, (255, 255, 255))
         screen.blit(easy_text, (easy_x, easy_y))
 
@@ -362,7 +367,7 @@ def option():
                 sys.exit()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = pygame.mouse.get_pos()
-                if back_x < mouse_x < (back_x+300):
+                if back_x < mouse_x < (back_x+400):
                     if back_y < mouse_y < back_y+50: 
                         main_menu()
                 if easy_x < mouse_x < (easy_x+300):
@@ -418,7 +423,7 @@ def main_menu():
                 if about_text_x < mouse_x < about_text_x + 150:
                     if about_text_y < mouse_y < about_text_y + 50:
                         about()
-                if option_text_x < mouse_x < option_text_x + 150:
+                if option_text_x < mouse_x < option_text_x + 200:
                     if option_text_y < mouse_y < option_text_y + 50:
                         option()
         pygame.display.update()
