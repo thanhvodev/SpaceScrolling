@@ -1,7 +1,7 @@
 import math
 import random
 from re import L
-
+import sys
 import pygame
 from pygame import mixer
 
@@ -36,7 +36,7 @@ enemyX = []
 enemyY = []
 enemyX_change = []
 enemyY_change = []
-num_of_enemies = 6
+num_of_enemies = 5
 num_of_enemies_killed = 0
 
 # Coin
@@ -58,14 +58,18 @@ clock = pygame.time.Clock()
 # State
 state = 'playing'
 
+# Game hardness
+hardness = 'easy'
+check = pygame.image.load('check-mark.png')
 
 
-for i in range(num_of_enemies):
-    enemyImg.append(pygame.image.load('enemy.png'))
-    enemyX.append(random.randint(0, 736))
-    enemyY.append(random.randint(50, 150))
-    enemyX_change.append(4)
-    enemyY_change.append(40)
+def spawn_enemy(num_of_enemies):
+    for i in range(num_of_enemies):
+        enemyImg.append(pygame.image.load('enemy.png'))
+        enemyX.append(random.randint(0, 736))
+        enemyY.append(random.randint(50, 150))
+        enemyX_change.append(4)
+        enemyY_change.append(40)
 
 for i in range(num_of_coin):
     coinImg.append(pygame.image.load('dollar.png'))
@@ -170,6 +174,7 @@ def game_play():
     global bullet_state
     global score_value
     global coin_value
+    spawn_enemy(num_of_enemies)
     while running:
 
         # scrolling
@@ -307,4 +312,115 @@ def game_play():
         clock.tick(speed)
         pygame.display.update()
 
-game_play()
+def about():
+    pygame.display.set_caption("About")    
+    screen.fill((204, 152, 102, 255))
+    while True:
+        about_text = over_font.render("This is a scrolling game", True, (255, 255, 255))
+        screen.blit(about_text, (0, 170))
+
+        back_text = over_font.render("Back to menu", True, (255, 255, 255))
+        screen.blit(back_text, (200, 500))
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+                if 200 < mouse_x < (200+300):
+                    if 500 < mouse_y < 500+50: 
+                        main_menu()
+        pygame.display.update()
+
+def option():
+    global hardness
+    global num_of_enemies
+    pygame.display.set_caption("Option")    
+    screen.fill((204, 152, 102, 255))
+    easy_x = hard_x = back_x = 200
+    easy_y = 170
+    hard_x = 200
+    hard_y = 250
+    back_y = 500
+    while True:
+        if hardness == 'easy':
+            screen.blit(check, (140, 160))
+        else:
+            screen.blit(check, (140, 250))
+        easy_text = over_font.render("Easy: 5 enemy", True, (255, 255, 255))
+        screen.blit(easy_text, (easy_x, easy_y))
+
+        hard_text = over_font.render("Hard: 10 enemy", True, (255, 255, 255))
+        screen.blit(hard_text, (hard_x, hard_y))
+
+        back_text = over_font.render("Back to menu", True, (255, 255, 255))
+        screen.blit(back_text, (back_x, back_y))
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+                if back_x < mouse_x < (back_x+300):
+                    if back_y < mouse_y < back_y+50: 
+                        main_menu()
+                if easy_x < mouse_x < (easy_x+300):
+                    if easy_y < mouse_y < easy_y+50: 
+                        hardness = 'easy'
+                        num_of_enemies = 5
+                if hard_x < mouse_x < (hard_x+300):
+                    if hard_y < mouse_y < hard_y+50: 
+                        hardness = 'hard'   
+                        num_of_enemies = 10
+
+        pygame.display.update()    
+
+def main_menu():
+    pygame.display.set_caption("Menu")
+    play_text_x = 320
+    play_text_y = 170
+
+    exit_text_x = 320
+    exit_text_y = 380
+
+    option_text_x = 280
+    option_text_y = 240
+
+    about_text_x = 290
+    about_text_y = 310
+    while True:
+        screen.fill((204, 152, 102, 255))
+        play_text = over_font.render("PLAY", True, (255, 255, 255))
+        screen.blit(play_text, (320, 170))
+
+        play_text = over_font.render("OPTION", True, (255, 255, 255))
+        screen.blit(play_text, (280, 240))
+
+        play_text = over_font.render("ABOUT", True, (255, 255, 255))
+        screen.blit(play_text, (290, 310))
+
+        play_text = over_font.render("EXIT", True, (255, 255, 255))
+        screen.blit(play_text, (320, 380))
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+                if play_text_x < mouse_x < (play_text_x+100):
+                    if play_text_y < mouse_y < play_text_y+50:
+                        game_play()
+                if exit_text_x < mouse_x < (exit_text_x+150):
+                    if exit_text_y < mouse_y < exit_text_y+50:
+                        pygame.quit()
+                        sys.exit()
+                if about_text_x < mouse_x < about_text_x + 150:
+                    if about_text_y < mouse_y < about_text_y + 50:
+                        about()
+                if option_text_x < mouse_x < option_text_x + 150:
+                    if option_text_y < mouse_y < option_text_y + 50:
+                        option()
+        pygame.display.update()
+
+main_menu()
