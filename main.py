@@ -37,6 +37,7 @@ enemyY = []
 enemyX_change = []
 enemyY_change = []
 num_of_enemies = 6
+num_of_enemies_killed = 0
 
 # Coin
 coinImg = []
@@ -53,6 +54,11 @@ bg_y2 = -screen.get_height()
 
 # clock
 clock = pygame.time.Clock()
+
+# State
+state = 'playing'
+
+
 
 for i in range(num_of_enemies):
     enemyImg.append(pygame.image.load('enemy.png'))
@@ -110,6 +116,15 @@ def game_over_text():
     over_text = over_font.render("GAME OVER", True, (255, 255, 255))
     screen.blit(over_text, (200, 250))
 
+def win_text():
+    over_text = over_font.render("YOU WIN", True, (255, 255, 255))
+    screen.blit(over_text, (230, 250))
+
+play_again_x = 200
+play_again_y = 330
+def play_again_text():
+    over_text = over_font.render("PLAY AGAIN?", True, (255, 255, 255))
+    screen.blit(over_text, (play_again_x, play_again_y))
 
 def player(x, y):
     screen.blit(playerImg, (x, y))
@@ -135,113 +150,161 @@ def isCollision(enemyX, enemyY, bulletX, bulletY):
         return False
 
 # Game Loop
-running = True
-speed = 60
-while running:
 
-    # scrolling
-    bg_y1 += 1.4  # Move both background images back
-    bg_y2 += 1.4
+def game_play():
+    running = True
+    speed = 60
+    global bg_y1
+    global bg_y2
+    global playerX
+    global playerY
+    global playerX_change
+    global state
+    global num_of_enemies_killed
+    global num_of_enemies
+    global num_of_coin
+    global bulletX
+    global bulletY
+    global bulletX_change
+    global bulletY_change
+    global bullet_state
+    global score_value
+    global coin_value
+    while running:
 
-    if bg_y1 > screen.get_height():  # If our bg is at the -width then reset its position
-        bg_y1 = -screen.get_height()
-    
-    if bg_y2 > screen.get_height():
-        bg_y2 = -screen.get_height()
+        # scrolling
+        bg_y1 += 1.4  # Move both background images back
+        bg_y2 += 1.4
 
-    # RGB = Red, Green, Blue
-    screen.fill((0, 0, 0))
-    # Background Image
-    screen.blit(background, (0, bg_y1))
-    screen.blit(background2, (0, bg_y2))
-    
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
+        if bg_y1 > screen.get_height():  # If our bg is at the -width then reset its position
+            bg_y1 = -screen.get_height()
+        
+        if bg_y2 > screen.get_height():
+            bg_y2 = -screen.get_height()
 
-        # if keystroke is pressed check whether its right or left
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_LEFT:
-                playerX_change = -5
-            if event.key == pygame.K_RIGHT:
-                playerX_change = 5
-            if event.key == pygame.K_SPACE:
-                if bullet_state == "ready":
-                    bulletSound = mixer.Sound("laser.wav")
-                    bulletSound.play()
-                    # Get the current x cordinate of the spaceship
-                    bulletX = playerX
-                    fire_bullet(bulletX, bulletY)
+        # RGB = Red, Green, Blue
+        screen.fill((0, 0, 0))
+        # Background Image
+        screen.blit(background, (0, bg_y1))
+        screen.blit(background2, (0, bg_y2))
+        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
 
-        if event.type == pygame.KEYUP:
-            if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
-                playerX_change = 0
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if state == 'win' or state == 'end':
+                    mouse_x, mouse_y = pygame.mouse.get_pos()
+                    if mouse_x > play_again_x and mouse_x < play_again_x + 400:
+                        if mouse_y > play_again_y and mouse_y < play_again_y + 50:
+                            state = 'playing'
+                            num_of_enemies_killed = 0
+                            score_value = 0
+                            coin_value = 0
+                            for i in range(num_of_enemies):
+                                enemyX[i] = random.randint(0, 736)
+                                enemyY[i] = random.randint(50, 150)
+                                enemyY_change[i] = 40
 
-    # 5 = 5 + -0.1 -> 5 = 5 - 0.1
-    # 5 = 5 + 0.1
 
-    playerX += playerX_change
-    if playerX <= 0:
-        playerX = 0
-    elif playerX >= 736:
-        playerX = 736
+            # if keystroke is pressed check whether its right or left
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT:
+                    playerX_change = -5
+                if event.key == pygame.K_RIGHT:
+                    playerX_change = 5
+                if event.key == pygame.K_SPACE:
+                    if bullet_state == "ready":
+                        bulletSound = mixer.Sound("laser.wav")
+                        bulletSound.play()
+                        # Get the current x cordinate of the spaceship
+                        bulletX = playerX
+                        fire_bullet(bulletX, bulletY)
 
-    # Coin created 
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
+                    playerX_change = 0
 
-    for i in range(num_of_coin):
-        coin_y_change = 6
-        coin_y[i] += coin_y_change
-        collision = isCollision(coin_x[i], coin_y[i], playerX + 32, playerY + 32)
-        if collision:
-            coin_sound = mixer.Sound("coin-sound.wav")
-            coin_sound.play()
-            coin_value += 1
-            coin_x[i] = random.randint(-100, 0)
-            coin_y[i] = random.randint(screen.get_height(), screen.get_height() + 100)
-        coin(coin_x[i], coin_y[i], i)
+        # 5 = 5 + -0.1 -> 5 = 5 - 0.1
+        # 5 = 5 + 0.1
 
-    # Enemy Movement
-    for i in range(num_of_enemies):
+        playerX += playerX_change
+        if playerX <= 0:
+            playerX = 0
+        elif playerX >= 736:
+            playerX = 736
 
-        # Game Over
-        if enemyY[i] > 440:
-            for j in range(num_of_enemies):
-                enemyY[j] = 2000
-            game_over_text()
-            break
+        # Coin created 
 
-        enemyX[i] += enemyX_change[i]
-        if enemyX[i] <= 0:
-            enemyX_change[i] = 4
-            enemyY[i] += enemyY_change[i]
-        elif enemyX[i] >= 736:
-            enemyX_change[i] = -4
-            enemyY[i] += enemyY_change[i]
+        for i in range(num_of_coin):
+            if state == 'win' or state == 'lose':
+                break
+            else:
+                coin_y_change = 6
+                coin_y[i] += coin_y_change
+                collision = isCollision(coin_x[i], coin_y[i], playerX + 32, playerY + 32)
+                if collision:
+                    coin_sound = mixer.Sound("coin-sound.wav")
+                    coin_sound.play()
+                    coin_value += 1
+                    coin_x[i] = random.randint(-100, 0)
+                    coin_y[i] = random.randint(screen.get_height(), screen.get_height() + 100)
+                coin(coin_x[i], coin_y[i], i)
 
-        # Collision
-        collision = isCollision(enemyX[i], enemyY[i], bulletX, bulletY)
-        if collision:
-            explosionSound = mixer.Sound("explosion.wav")
-            explosionSound.play()
+        # Enemy Movement
+        for i in range(num_of_enemies):
+            if enemyY[i] > 440:
+                state = 'lose'
+            if num_of_enemies == num_of_enemies_killed:
+                state = 'win'
+            # Game Over
+            if state == 'lose':
+                for j in range(num_of_enemies):
+                    enemyY[j] = 2000
+                game_over_text()
+                play_again_text()
+                break
+            elif state == 'win':
+                win_text()
+                play_again_text()
+                break
+            else:
+                enemyX[i] += enemyX_change[i]
+                if enemyX[i] <= 0:
+                    enemyX_change[i] = 4
+                    enemyY[i] += enemyY_change[i]
+                elif enemyX[i] >= 736:
+                    enemyX_change[i] = -4
+                    enemyY[i] += enemyY_change[i]
+
+                # Collision
+                collision = isCollision(enemyX[i], enemyY[i], bulletX, bulletY)
+                if collision:
+                    explosionSound = mixer.Sound("explosion.wav")
+                    explosionSound.play()
+                    bulletY = 480
+                    bullet_state = "ready"
+                    score_value += 1
+                    enemyX[i] = random.randint(0, 736)
+                    enemyY[i] = -440
+                    enemyY_change[i] = 0
+                    num_of_enemies_killed += 1
+
+                enemy(enemyX[i], enemyY[i], i)
+
+        # Bullet Movement
+        if bulletY <= 0:
             bulletY = 480
             bullet_state = "ready"
-            score_value += 1
-            enemyX[i] = random.randint(0, 736)
-            enemyY[i] = random.randint(50, 150)
 
-        enemy(enemyX[i], enemyY[i], i)
+        if bullet_state == "fire":
+            fire_bullet(bulletX, bulletY)
+            bulletY -= bulletY_change
 
-    # Bullet Movement
-    if bulletY <= 0:
-        bulletY = 480
-        bullet_state = "ready"
+        player(playerX, playerY)
+        show_score(textX, testY)
+        show_coin(coin_value_x, coin_value_y)
+        clock.tick(speed)
+        pygame.display.update()
 
-    if bullet_state == "fire":
-        fire_bullet(bulletX, bulletY)
-        bulletY -= bulletY_change
-
-    player(playerX, playerY)
-    show_score(textX, testY)
-    show_coin(coin_value_x, coin_value_y)
-    clock.tick(speed)
-    pygame.display.update()
+game_play()
