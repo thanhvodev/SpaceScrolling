@@ -71,10 +71,11 @@ def spawn_enemy(num_of_enemies):
         enemyX_change.append(4)
         enemyY_change.append(40)
 
-for i in range(num_of_coin):
-    coinImg.append(pygame.image.load('dollar.png'))
-    coin_x.append(random.randint(0, screen.get_width()))
-    coin_y.append(random.randint(-20 * screen.get_height(), 0))
+def spawn_coin(num_of_coin):
+    for i in range(num_of_coin):
+        coinImg.append(pygame.image.load('dollar.png'))
+        coin_x.append(random.randint(0, screen.get_width()))
+        coin_y.append(random.randint(-20 * screen.get_height(), 0))
 
 # Bullet
 
@@ -123,6 +124,10 @@ def game_over_text():
 def win_text():
     over_text = over_font.render("YOU WIN", True, (255, 255, 255))
     screen.blit(over_text, (230, 250))
+
+def back_text():
+    back_text = font.render("Back", True, (255, 255, 255))
+    screen.blit(back_text, (10, screen.get_height()-40))
 
 play_again_x = 200
 play_again_y = 330
@@ -178,6 +183,7 @@ def game_play():
     global score_value
     global coin_value
     spawn_enemy(num_of_enemies)
+    spawn_coin(num_of_coin)
     while running:
 
         # scrolling
@@ -195,14 +201,15 @@ def game_play():
         # Background Image
         screen.blit(background, (0, bg_y1))
         screen.blit(background2, (0, bg_y2))
-        
+        back_text()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if state == 'win' or state == 'end':
-                    mouse_x, mouse_y = pygame.mouse.get_pos()
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+
+                if state == 'win' or state == 'lose':
                     if mouse_x > play_again_x and mouse_x < play_again_x + 400:
                         if mouse_y > play_again_y and mouse_y < play_again_y + 50:
                             state = 'playing'
@@ -213,7 +220,9 @@ def game_play():
                                 enemyX[i] = random.randint(0, 736)
                                 enemyY[i] = random.randint(50, 150)
                                 enemyY_change[i] = 40
-
+                if 10 < mouse_x < 10+100:
+                    if screen.get_height() - 40 < mouse_y < screen.get_height():
+                        main_menu()
 
             # if keystroke is pressed check whether its right or left
             if event.type == pygame.KEYDOWN:
