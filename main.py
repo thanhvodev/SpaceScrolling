@@ -95,9 +95,14 @@ def show_score(x, y):
     screen.blit(score, (x, y))
 
 
+coin_value_x = 10
+coin_value_y = 50
+coin_icon =  pygame.image.load('dollar.png')
+
 def show_coin(x, y):
-    coin = font.render("Score : " + str(coin_value), True, (255, 255, 255))
+    coin = font.render("Coin : " + str(coin_value), True, (255, 255, 255))
     screen.blit(coin, (x, y))
+    screen.blit(coin_icon, (x+130, y))
 
 
 
@@ -128,7 +133,6 @@ def isCollision(enemyX, enemyY, bulletX, bulletY):
         return True
     else:
         return False
-
 
 # Game Loop
 running = True
@@ -187,6 +191,13 @@ while running:
     for i in range(num_of_coin):
         coin_y_change = 6
         coin_y[i] += coin_y_change
+        collision = isCollision(coin_x[i], coin_y[i], playerX + 32, playerY + 32)
+        if collision:
+            coin_sound = mixer.Sound("coin-sound.wav")
+            coin_sound.play()
+            coin_value += 1
+            coin_x[i] = random.randint(-100, 0)
+            coin_y[i] = random.randint(screen.get_height(), screen.get_height() + 100)
         coin(coin_x[i], coin_y[i], i)
 
     # Enemy Movement
@@ -231,5 +242,6 @@ while running:
 
     player(playerX, playerY)
     show_score(textX, testY)
+    show_coin(coin_value_x, coin_value_y)
     clock.tick(speed)
     pygame.display.update()
