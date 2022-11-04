@@ -8,8 +8,15 @@ from pygame import mixer
 # Intialize the pygame
 pygame.init()
 
+# constants
+
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
+BOSS_WIDTH = BOSS_HEIGHT = 128
+
 # create the screen
-screen = pygame.display.set_mode((800, 600))
+
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
 # Background
 background = pygame.image.load('background.jpg')
@@ -47,6 +54,14 @@ coin_x = []
 coin_y = []
 coin_x_change = []
 coin_y_change = []
+
+# Boss
+bossImg = pygame.image.load('boss.png')
+boss_x = (SCREEN_WIDTH  - BOSS_WIDTH)/2
+boss_y = -BOSS_HEIGHT
+boss_health = 5
+boss_x_change = boss_x_change_on_mode = 6
+boss_y_change = 40
 
 # scrolling
 bg_y1 = 0
@@ -148,15 +163,21 @@ def enemy(x, y, i):
 def coin(x, y, i):
     screen.blit(coinImg[i], (x, y))
 
+def boss(x, y):
+    screen.blit(bossImg, (x, y))
+
+def boss_health_bar(health):
+    pygame.draw.rect(screen, (255,0,0), pygame.Rect(200, 10, health*80, 30))
+
 def fire_bullet(x, y):
     global bullet_state
     bullet_state = "fire"
     screen.blit(bulletImg, (x + 16, y + 10))
 
 
-def isCollision(enemyX, enemyY, bulletX, bulletY):
+def isCollision(enemyX, enemyY, bulletX, bulletY, distance_radius):
     distance = math.sqrt(math.pow(enemyX - bulletX, 2) + (math.pow(enemyY - bulletY, 2)))
-    if distance < 30:
+    if distance < distance_radius:
         return True
     else:
         return False
@@ -182,8 +203,15 @@ def game_play():
     global bullet_state
     global score_value
     global coin_value
+    global boss_health
+    global boss_x
+    global boss_y
+    global boss_x_change
+    global boss_y_change
+    global boss_x_change_on_mode
     spawn_enemy(num_of_enemies)
     spawn_coin(num_of_coin)
+    boss_x_change = boss_x_change_on_mode
     while running:
 
         # scrolling
@@ -212,10 +240,16 @@ def game_play():
                 if state == 'win' or state == 'lose':
                     if mouse_x > play_again_x and mouse_x < play_again_x + 400:
                         if mouse_y > play_again_y and mouse_y < play_again_y + 50:
+                            # reset state
                             state = 'playing'
                             num_of_enemies_killed = 0
                             score_value = 0
                             coin_value = 0
+                            boss_x = (SCREEN_WIDTH  - BOSS_WIDTH)/2
+                            boss_y = -BOSS_HEIGHT
+                            boss_health = 5
+                            boss_x_change = boss_x_change_on_mode
+                            boss_y_change = 40
                             for i in range(num_of_enemies):
                                 enemyX[i] = random.randint(0, 736)
                                 enemyY[i] = random.randint(50, 150)
@@ -252,14 +286,13 @@ def game_play():
             playerX = 736
 
         # Coin created 
-
         for i in range(num_of_coin):
             if state == 'win' or state == 'lose':
                 break
             else:
                 coin_y_change = 6
                 coin_y[i] += coin_y_change
-                collision = isCollision(coin_x[i], coin_y[i], playerX + 32, playerY + 32)
+                collision = isCollision(coin_x[i] + 16, coin_y[i] + 16, playerX + 32, playerY + 32, 48)
                 if collision:
                     coin_sound = mixer.Sound("coin-sound.wav")
                     coin_sound.play()
@@ -268,11 +301,32 @@ def game_play():
                     coin_y[i] = random.randint(screen.get_height(), screen.get_height() + 100)
                 coin(coin_x[i], coin_y[i], i)
 
+        # boss movement
+        if state == 'boss':
+            boss_health_bar(boss_health)
+            boss(boss_x, boss_y)
+            if boss_x <= 0 or boss_x >= SCREEN_WIDTH - BOSS_WIDTH:
+                boss_y += boss_y_change
+                boss_x_change = -boss_x_change
+            boss_x += boss_x_change
+            collision = isCollision(boss_x+64, boss_y+64, bulletX+16, bulletY+16, 80)
+            if collision:
+                boss_health -= 1
+                bulletY = 480
+                bullet_state = "ready"
+            if boss_health <= 0:
+                state = 'win'
+            if boss_x > 440:
+                state = 'lose'
+
         # Enemy Movement
         for i in range(num_of_enemies):
             if enemyY[i] > 440:
                 state = 'lose'
             if num_of_enemies == num_of_enemies_killed:
+                #state = 'win'
+                state = 'boss'
+            if boss_health <= 0:
                 state = 'win'
             # Game Over
             if state == 'lose':
@@ -295,7 +349,7 @@ def game_play():
                     enemyY[i] += enemyY_change[i]
 
                 # Collision
-                collision = isCollision(enemyX[i], enemyY[i], bulletX, bulletY)
+                collision = isCollision(enemyX[i]+32, enemyY[i]+32, bulletX+16, bulletY+16, 48)
                 if collision:
                     explosionSound = mixer.Sound("explosion.wav")
                     explosionSound.play()
@@ -347,6 +401,8 @@ def about():
 def option():
     global hardness
     global num_of_enemies
+    global boss_x_change_on_mode
+
     pygame.display.set_caption("Option")  
     screen.fill((204, 152, 102, 255))  
     easy_x = hard_x = back_x = 200
@@ -383,10 +439,13 @@ def option():
                     if easy_y < mouse_y < easy_y+50: 
                         hardness = 'easy'
                         num_of_enemies = 5
+                        boss_x_change_on_mode = 6
                 if hard_x < mouse_x < (hard_x+300):
                     if hard_y < mouse_y < hard_y+50: 
                         hardness = 'hard'   
                         num_of_enemies = 10
+                        boss_x_change_on_mode = 10
+
 
         pygame.display.update()    
 
